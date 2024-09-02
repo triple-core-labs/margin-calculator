@@ -1,0 +1,126 @@
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('assets/fonts/roboto-condensed-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('assets/fonts/roboto-condensed-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('assets/fonts/roboto-condensed-700.woff2') format('woff2');
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: theme('colors.chassis.950');
+    color: theme('colors.chassis.100');
+    font-family: theme('fontFamily.mono');
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: theme('colors.signal.dim');
+    color: theme('colors.chassis.50');
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.signal.DEFAULT');
+    outline-offset: 3px;
+  }
+
+  * {
+    scrollbar-color: theme('colors.chassis.700') theme('colors.chassis.950');
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: theme('colors.chassis.950');
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.chassis.700');
+    border: 3px solid theme('colors.chassis.950');
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.chassis.600');
+  }
+}
+
+@layer components {
+  /** The name of a line on the ticket, which reads as a stencilled label. */
+  .ticket-label {
+    @apply block font-mono text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-chassis-400;
+  }
+
+  /**
+   * A figure the trader types in.
+   *
+   * The background is cleared explicitly: a dark colour scheme gives a field
+   * its own filled box, which would read as a boxed control on a ticket whose
+   * every line is a hairline rule.
+   */
+  .ticket-figure {
+    @apply bg-transparent font-mono text-lg font-medium tabular-nums lining-nums text-chassis-100 transition-colors;
+  }
+
+  .ticket-figure:hover {
+    @apply text-white;
+  }
+
+  /** A figure the ticket answers with, beside the one carrying the accent. */
+  .ticket-result {
+    @apply font-mono text-[1rem] font-medium tabular-nums lining-nums text-chassis-100 sm:text-lg;
+  }
+
+  /** The currency or unit a figure is counted in. */
+  .ticket-unit {
+    @apply font-mono text-xs text-chassis-500;
+  }
+
+  /** A dim second reading of the figure above it. */
+  .ticket-gloss-line {
+    @apply block font-mono text-[0.6875rem] tracking-[0.02em] text-chassis-500;
+  }
+
+  /** One of two ways of saying the same thing, the chosen one lit. */
+  .ticket-toggle {
+    @apply border border-chassis-600 px-2 py-1 font-mono text-[0.625rem] font-medium uppercase tracking-[0.14em] text-chassis-400 transition-colors;
+  }
+
+  .ticket-toggle:hover {
+    @apply border-chassis-500 text-chassis-100;
+  }
+
+  .ticket-toggle.is-on {
+    @apply border-chassis-400 bg-chassis-850 text-chassis-50;
+  }
+}
