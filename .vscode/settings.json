@@ -1,0 +1,8 @@
+{
+  // Angular 13 pins TypeScript 4.6, while the editor ships a much newer one.
+  // Checking the project with the newer compiler reports options that 4.6 has
+  // no concept of, so the editor disagrees with what "ng build" actually does.
+  // Point the language service at the compiler the build uses.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
