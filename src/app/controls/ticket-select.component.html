@@ -1,0 +1,94 @@
+<span
+  class="block font-mono text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-chassis-400"
+  [id]="labelId">
+  {{ label }}
+</span>
+
+<span class="relative mt-2 block">
+  <input
+    #control
+    type="text"
+    role="combobox"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    aria-haspopup="listbox"
+    class="ticket-control w-full bg-transparent pr-6 font-mono text-lg font-medium tabular-nums lining-nums text-chassis-100 transition-colors hover:text-white"
+    [id]="controlId"
+    [attr.aria-labelledby]="labelId"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-expanded]="isOpen"
+    [attr.aria-invalid]="invalid ? 'true' : null"
+    [attr.aria-describedby]="describedBy"
+    [attr.aria-activedescendant]="activeId"
+    [attr.aria-autocomplete]="searchable ? 'list' : null"
+    [attr.placeholder]="placeholder"
+    [attr.inputmode]="searchable ? null : 'none'"
+    [readOnly]="!searchable"
+    [disabled]="disabled"
+    [value]="displayText"
+    (input)="onInput(control.value)"
+    (click)="onControlClick()"
+    (keydown)="onKeydown($event)" />
+
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"
+    class="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 transition-colors group-hover:text-signal"
+    [class.text-chassis-500]="!isOpen"
+    [class.text-signal]="isOpen">
+    <path d="M3.5 6.25 8 10.25l4.5-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+
+  <div
+    *ngIf="isOpen"
+    class="ticket-popup absolute left-0 right-0 top-full z-20 mt-2 border border-chassis-700 bg-chassis-900 py-1">
+
+    <ul
+      role="listbox"
+      class="max-h-64 overflow-y-auto"
+      [id]="listboxId"
+      [attr.aria-labelledby]="labelId">
+      <li
+        *ngFor="let option of visibleOptions; index as i"
+        #optionRow
+        role="option"
+        class="flex cursor-pointer items-baseline justify-between gap-3 border-l py-1.5 pl-2.5 pr-3 font-mono text-[0.875rem] tabular-nums lining-nums"
+        [id]="optionId(i)"
+        [attr.aria-selected]="isSelected(option)"
+        [class.border-transparent]="!isSelected(option)"
+        [class.border-chassis-500]="isSelected(option)"
+        [class.bg-chassis-800]="i === activeIndex"
+        [class.text-chassis-50]="i === activeIndex"
+        [class.text-chassis-100]="i !== activeIndex && isSelected(option)"
+        [class.text-chassis-400]="i !== activeIndex && !isSelected(option)"
+        (mousedown)="$event.preventDefault()"
+        (click)="choose(i)">
+        <span>{{ option.label }}</span>
+        <span
+          *ngIf="option.detail"
+          class="ticket-gloss truncate text-[0.6875rem] tracking-[0.02em]"
+          [class.text-chassis-400]="i === activeIndex"
+          [class.text-chassis-500]="i !== activeIndex">
+          {{ option.detail }}
+        </span>
+      </li>
+    </ul>
+
+    <p
+      *ngIf="hasMore"
+      role="status"
+      class="px-3 py-1.5 font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-chassis-500"
+      [id]="moreId"
+      [attr.data-testid]="moreId">
+      More matches, keep typing
+    </p>
+
+    <p
+      *ngIf="visibleOptions.length === 0"
+      role="status"
+      class="px-3 py-1.5 font-mono text-[0.8125rem] text-chassis-500"
+      [id]="noMatchId"
+      [attr.data-testid]="noMatchId">
+      No match
+    </p>
+  </div>
+</span>

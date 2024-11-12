@@ -1,0 +1,87 @@
+:host {
+  display: block;
+}
+
+/** The control reads as a labelled line, so the browser chrome around it goes. */
+.ticket-control {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  outline-offset: 4px;
+  text-overflow: ellipsis;
+}
+
+.ticket-control::placeholder {
+  @apply text-chassis-500;
+  opacity: 1;
+}
+
+.ticket-control:read-only {
+  cursor: pointer;
+}
+
+.ticket-control:disabled {
+  @apply text-chassis-600;
+  cursor: not-allowed;
+}
+
+/** The list is a window cut into the panel, not a card floating over it. */
+.ticket-popup {
+  border-radius: 0;
+  animation: ticket-popup 110ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/**
+ * The list itself is what scrolls, because a plain scrolling box is a region
+ * the keyboard cannot reach, while a listbox is already driven by the arrows.
+ */
+.ticket-popup [role='listbox'] {
+  overscroll-behavior: contain;
+}
+
+/**
+ * On a narrow screen the list takes the width of the line it belongs to, so it
+ * can never push the page sideways. Once there is room beside the ticket it
+ * grows to whatever the longest row needs, which is what keeps the spelt out
+ * currency names readable rather than clipped.
+ */
+/**
+ * Below the width where the list can grow, the spelt out currency names would
+ * survive as three letters and a full stop, which is noise rather than help.
+ * The symbol carries the row on a phone; the names return once there is room.
+ */
+.ticket-gloss {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .ticket-popup {
+    right: auto;
+    width: max-content;
+    min-width: 100%;
+    max-width: 23rem;
+  }
+
+  .ticket-gloss {
+    display: inline;
+  }
+}
+
+@keyframes ticket-popup {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-popup {
+    animation: none;
+  }
+}
