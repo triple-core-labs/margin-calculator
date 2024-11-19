@@ -1,0 +1,422 @@
+<main class="min-h-screen px-5 pb-14 pt-8 sm:px-8 sm:pt-12">
+  <div class="mx-auto w-full max-w-[36rem]" *ngIf="view$ | async as view">
+
+    <header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h1 class="text-[1.0625rem] font-semibold tracking-[-0.005em] text-chassis-100">
+        Position ticket
+      </h1>
+      <p class="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-chassis-500">
+        Size before you send it
+      </p>
+    </header>
+
+    <form [formGroup]="form" autocomplete="off" class="mt-6">
+
+      <div class="grid grid-cols-2 gap-x-6 border-t border-chassis-800 py-4 sm:gap-x-10">
+        <app-ticket-select
+          class="group block"
+          controlId="pair"
+          label="Pair"
+          [searchable]="true"
+          [options]="(pairRows$ | async) ?? []"
+          [invalid]="view.problemField === 'pair'"
+          [describedBy]="faultDescription(view, 'pair')"
+          formControlName="pair"></app-ticket-select>
+
+        <app-ticket-select
+          class="group block"
+          controlId="account"
+          label="Account"
+          [options]="accountRows"
+          formControlName="accountCurrency"></app-ticket-select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-6 border-t border-chassis-800 py-4 sm:gap-x-10">
+        <app-ticket-select
+          class="group block"
+          controlId="leverage"
+          label="Leverage"
+          [options]="leverageRows"
+          [invalid]="view.problemField === 'leverage'"
+          [describedBy]="faultDescription(view, 'leverage')"
+          formControlName="leverage"></app-ticket-select>
+
+        <label class="group block">
+          <span class="ticket-label">Balance, {{ accountCode }}</span>
+          <input
+            type="text"
+            appDecimalField
+            [step]="100"
+            data-testid="balance"
+            [attr.aria-invalid]="faultFlag(view, 'balance')"
+            [attr.aria-describedby]="faultDescription(view, 'balance')"
+            formControlName="balance"
+            inputmode="decimal"
+            class="ticket-input ticket-figure mt-2 w-full" />
+        </label>
+      </div>
+
+      <div class="border-t border-chassis-800 py-4">
+        <div class="flex items-baseline justify-between gap-4">
+          <span class="ticket-label" id="risk-label">Risk</span>
+          <span class="flex items-center gap-1" role="group" aria-labelledby="risk-label">
+            <button
+              type="button"
+              data-testid="risk-mode-percent"
+              class="ticket-toggle"
+              [class.is-on]="riskMode === 'percent'"
+              [attr.aria-pressed]="riskMode === 'percent'"
+              (click)="setRiskMode('percent')">
+              Per cent
+            </button>
+            <button
+              type="button"
+              data-testid="risk-mode-money"
+              class="ticket-toggle"
+              [class.is-on]="riskMode === 'money'"
+              [attr.aria-pressed]="riskMode === 'money'"
+              (click)="setRiskMode('money')">
+              {{ accountCode }}
+            </button>
+          </span>
+        </div>
+
+        <div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <label class="group block w-24 shrink-0" *ngIf="riskMode === 'percent'; else riskMoney">
+            <span class="sr-only">Risk, per cent of balance</span>
+            <input
+              type="text"
+              appDecimalField
+              [step]="0.1"
+              data-testid="risk-percent"
+            [attr.aria-invalid]="faultFlag(view, 'risk')"
+            [attr.aria-describedby]="faultDescription(view, 'risk')"
+              formControlName="riskPercent"
+              inputmode="decimal"
+              class="ticket-input ticket-figure w-full" />
+          </label>
+          <ng-template #riskMoney>
+            <label class="group block w-24 shrink-0">
+              <span class="sr-only">Risk, {{ accountCode }}</span>
+              <input
+                type="text"
+                appDecimalField
+                [step]="10"
+                data-testid="risk-money"
+            [attr.aria-invalid]="faultFlag(view, 'risk')"
+            [attr.aria-describedby]="faultDescription(view, 'risk')"
+                formControlName="riskMoney"
+                inputmode="decimal"
+                class="ticket-input ticket-figure w-full" />
+            </label>
+          </ng-template>
+
+          <span data-testid="risk-gloss" class="ticket-gloss-line min-w-0 flex-1">
+            <ng-container *ngIf="riskMode === 'percent'">
+              per cent, {{ riskMoneyText }} {{ accountCode }}
+            </ng-container>
+            <ng-container *ngIf="riskMode === 'money'">
+              {{ accountCode }}, {{ riskPercentText }} per cent of the balance
+            </ng-container>
+          </span>
+        </div>
+      </div>
+
+      <div class="border-t border-chassis-800 py-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+          <span class="ticket-label" id="levels-label">Levels</span>
+          <span class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span
+              *ngIf="levelMode === 'pips'"
+              class="flex items-center gap-1"
+              role="group"
+              aria-label="Direction">
+              <button
+                type="button"
+                data-testid="direction-long"
+                class="ticket-toggle"
+                [class.is-on]="direction === 'long'"
+                [attr.aria-pressed]="direction === 'long'"
+                (click)="setDirection('long')">
+                Long
+              </button>
+              <button
+                type="button"
+                data-testid="direction-short"
+                class="ticket-toggle"
+                [class.is-on]="direction === 'short'"
+                [attr.aria-pressed]="direction === 'short'"
+                (click)="setDirection('short')">
+                Short
+              </button>
+            </span>
+            <span class="flex items-center gap-1" role="group" aria-labelledby="levels-label">
+              <button
+                type="button"
+                data-testid="level-mode-price"
+                class="ticket-toggle"
+                [class.is-on]="levelMode === 'price'"
+                [attr.aria-pressed]="levelMode === 'price'"
+                (click)="setLevelMode('price')">
+                Prices
+              </button>
+              <button
+                type="button"
+                data-testid="level-mode-pips"
+                class="ticket-toggle"
+                [class.is-on]="levelMode === 'pips'"
+                [attr.aria-pressed]="levelMode === 'pips'"
+                (click)="setLevelMode('pips')">
+                Pips
+              </button>
+            </span>
+          </span>
+        </div>
+
+        <div class="mt-3 grid grid-cols-3 gap-x-4 sm:gap-x-8">
+          <label class="group block min-w-0">
+            <span class="ticket-label">Entry</span>
+            <input
+              type="text"
+              appDecimalField
+              [step]="priceStep"
+              data-testid="entry"
+            [attr.aria-invalid]="faultFlag(view, 'entry')"
+            [attr.aria-describedby]="faultDescription(view, 'entry')"
+              formControlName="entry"
+              inputmode="decimal"
+              class="ticket-input ticket-figure mt-2 w-full" />
+          </label>
+
+          <ng-container *ngIf="levelMode === 'price'; else pipDistances">
+            <label class="group block min-w-0">
+              <span class="ticket-label">Stop</span>
+              <input
+                type="text"
+                appDecimalField
+                [step]="priceStep"
+                data-testid="stop"
+            [attr.aria-invalid]="faultFlag(view, 'stop')"
+            [attr.aria-describedby]="faultDescription(view, 'stop')"
+                formControlName="stop"
+                inputmode="decimal"
+                class="ticket-input ticket-figure mt-2 w-full" />
+            </label>
+            <label class="group block min-w-0">
+              <span class="ticket-label">Take</span>
+              <input
+                type="text"
+                appDecimalField
+                [step]="priceStep"
+                data-testid="take"
+            [attr.aria-invalid]="faultFlag(view, 'take')"
+            [attr.aria-describedby]="faultDescription(view, 'take')"
+                formControlName="take"
+                inputmode="decimal"
+                class="ticket-input ticket-figure mt-2 w-full" />
+            </label>
+          </ng-container>
+
+          <ng-template #pipDistances>
+            <label class="group block min-w-0">
+              <span class="ticket-label">Stop, pips</span>
+              <input
+                type="text"
+                appDecimalField
+                [step]="0.1"
+                data-testid="stop-pips"
+            [attr.aria-invalid]="faultFlag(view, 'stop')"
+            [attr.aria-describedby]="faultDescription(view, 'stop')"
+                formControlName="stopPips"
+                inputmode="decimal"
+                class="ticket-input ticket-figure mt-2 w-full" />
+            </label>
+            <label class="group block min-w-0">
+              <span class="ticket-label">Take, pips</span>
+              <input
+                type="text"
+                appDecimalField
+                [step]="0.1"
+                data-testid="take-pips"
+            [attr.aria-invalid]="faultFlag(view, 'take')"
+            [attr.aria-describedby]="faultDescription(view, 'take')"
+                formControlName="takePips"
+                inputmode="decimal"
+                class="ticket-input ticket-figure mt-2 w-full" />
+            </label>
+          </ng-template>
+        </div>
+      </div>
+    </form>
+
+    <section class="border-t border-chassis-700 pt-7" aria-live="polite">
+
+      <ng-container [ngSwitch]="view.status">
+
+        <div *ngSwitchCase="'loading'" data-testid="loading">
+          <div class="flex items-baseline justify-between gap-4">
+            <span class="ticket-label">Position size</span>
+            <span class="ticket-pulse h-10 w-44 rounded-[2px] bg-chassis-850"></span>
+          </div>
+          <p class="mt-6 border-t border-chassis-800 pt-4 font-mono text-xs tracking-[0.04em] text-chassis-400">
+            Fetching reference rates
+          </p>
+        </div>
+
+        <div *ngSwitchCase="'error'" data-testid="error">
+          <p class="max-w-[40ch] text-[0.9375rem] leading-relaxed text-fault">{{ view.message }}</p>
+          <button
+            type="button"
+            data-testid="retry"
+            (click)="refresh()"
+            class="mt-5 border border-chassis-500 px-4 py-2 font-mono text-[0.75rem] font-medium uppercase tracking-[0.16em] text-chassis-200 transition-colors hover:border-signal hover:text-signal">
+            Retry
+          </button>
+        </div>
+
+        <div *ngSwitchDefault class="ticket-arrive">
+          <ng-container *ngIf="view.figures as f; else inputProblem">
+
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <span class="ticket-label">Position size</span>
+              <span class="flex items-baseline gap-2">
+                <span data-testid="size" class="font-mono text-figure font-medium tabular-nums lining-nums text-signal">
+                  {{ f.sizeText }}
+                </span>
+                <span class="font-mono text-sm font-medium text-chassis-400">lots</span>
+              </span>
+            </div>
+            <p data-testid="direction" class="mt-1.5 text-right font-mono text-[0.75rem] tracking-[0.04em] text-chassis-400">
+              {{ f.directionText }}
+            </p>
+
+            <div class="mt-6 grid grid-cols-3 gap-x-4 border-t border-chassis-800 pt-4 sm:gap-x-8">
+              <div class="min-w-0">
+                <span class="ticket-label">At risk</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="at-risk" class="ticket-result">{{ f.atRiskText }}</span>
+                  <span class="ticket-unit">{{ f.account }}</span>
+                </p>
+                <p class="ticket-gloss-line mt-1">of {{ f.riskAskedText }} asked</p>
+              </div>
+              <div class="min-w-0">
+                <span class="ticket-label">Reward</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="reward" class="ticket-result" *ngIf="f.rewardText; else noTake">
+                    {{ f.rewardText }}
+                  </span>
+                  <span class="ticket-unit" *ngIf="f.rewardText">{{ f.account }}</span>
+                </p>
+                <p class="ticket-gloss-line mt-1" *ngIf="f.rewardPipsText">{{ f.rewardPipsText }}</p>
+              </div>
+              <div class="min-w-0">
+                <span class="ticket-label">Reward on risk</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="r-multiple" class="ticket-result" *ngIf="f.rMultipleText; else noTake">
+                    {{ f.rMultipleText }}
+                  </span>
+                </p>
+                <p class="ticket-gloss-line mt-1" *ngIf="f.rMultipleGlossText">{{ f.rMultipleGlossText }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-3 gap-x-4 border-t border-chassis-800 pt-4 sm:gap-x-8">
+              <div class="min-w-0">
+                <span class="ticket-label">Margin</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="margin" class="ticket-result">{{ f.marginText }}</span>
+                  <span class="ticket-unit">{{ f.account }}</span>
+                </p>
+                <p class="ticket-gloss-line mt-1">at {{ f.leverageText }}</p>
+                <p
+                  *ngIf="f.marginOverBalanceText"
+                  data-testid="margin-over-balance"
+                  class="ticket-gloss-line mt-1 text-fault">
+                  {{ f.marginOverBalanceText }}
+                </p>
+              </div>
+              <div class="min-w-0">
+                <span class="ticket-label">Pip value</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="pip-value" class="ticket-result">{{ f.pipValueText }}</span>
+                  <span class="ticket-unit">{{ f.account }}</span>
+                </p>
+                <p class="ticket-gloss-line mt-1">{{ f.pipSizeText }} a pip</p>
+              </div>
+              <div class="min-w-0">
+                <span class="ticket-label">Position</span>
+                <p class="mt-2 flex flex-wrap items-baseline gap-x-1.5">
+                  <span data-testid="position-value" class="ticket-result">{{ f.positionValueText }}</span>
+                  <span class="ticket-unit">{{ f.account }}</span>
+                </p>
+                <p class="ticket-gloss-line mt-1">{{ f.unitsText }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-chassis-800 pt-4">
+              <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span class="ticket-label">{{ f.pairLabel }} reference</span>
+                <span data-testid="price" class="font-mono text-lg font-medium tabular-nums lining-nums text-chassis-200 sm:text-xl">
+                  {{ f.priceText }}
+                </span>
+              </div>
+              <ng-container *ngTemplateOutlet="rateLine; context: { $implicit: view.rate }"></ng-container>
+            </div>
+          </ng-container>
+
+          <ng-template #inputProblem>
+            <div class="flex items-center justify-between gap-4">
+              <span class="ticket-label">Position size</span>
+              <span class="h-[3px] w-12 bg-chassis-600" aria-hidden="true"></span>
+            </div>
+            <div class="mt-6 border-t border-chassis-800 pt-4">
+              <p id="ticket-problem" data-testid="input-error" class="max-w-[44ch] text-sm leading-relaxed text-fault">
+                {{ view.message }}
+              </p>
+              <ng-container *ngTemplateOutlet="rateLine; context: { $implicit: view.rate }"></ng-container>
+            </div>
+          </ng-template>
+        </div>
+
+      </ng-container>
+    </section>
+
+    <div class="mt-8 border-t border-chassis-800 pt-4">
+      <p class="max-w-[62ch] text-[0.8125rem] leading-relaxed text-chassis-400">
+        The size is rounded down to the 0.01 lot a broker steps in, so it risks
+        at most what you asked for. One standard lot is 100,000 units of the base
+        currency. Reference rates are published once a day and are not the tick
+        price a broker quotes, so these figures exclude spread, commission and
+        overnight swap.
+      </p>
+    </div>
+
+  </div>
+</main>
+
+<ng-template #noTake>
+  <span class="ticket-result text-chassis-500">no take</span>
+</ng-template>
+
+<ng-template #rateLine let-rate>
+  <p *ngIf="rate" class="mt-2 flex flex-wrap items-baseline justify-end gap-x-2 font-mono text-[0.75rem] tracking-[0.04em]">
+    <time
+      data-testid="rate-age"
+      class="ticket-age"
+      [class.is-stale]="rate.stale"
+      [attr.datetime]="rate.updatedAt"
+      [attr.aria-label]="rate.ageSpoken"
+      [title]="rate.updatedAtText">
+      <span *ngIf="rate.stale" aria-hidden="true" class="mr-1.5 inline-block h-1.5 w-1.5 -translate-y-px rounded-full bg-alert align-middle"></span>
+      {{ rate.ageText }}
+    </time>
+    <span class="text-chassis-500">{{ rate.source }}</span>
+    <button
+      type="button"
+      data-testid="refresh"
+      (click)="refresh()"
+      class="-my-1 py-1 text-chassis-500 underline decoration-chassis-600 decoration-1 underline-offset-4 transition-colors hover:text-signal hover:decoration-signal">
+      Refresh
+    </button>
+  </p>
+</ng-template>
