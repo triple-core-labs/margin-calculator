@@ -103,15 +103,16 @@ that quote in the thousands, which is exactly why the entry check above exists.
 
 ## Running it
 
-This is Angular 13 and it does not run on current Node. Use Node 16:
-
 ```bash
-nvm use 16.20.2
 npm install
 npm start
 ```
 
 Then open `http://localhost:4200`.
+
+Angular 13 predates the Node releases in use today, but it builds, serves and
+tests cleanly on them: verified on Node 16, 20 and 24, from a clean install
+each time.
 
 ```bash
 npm run build          # production build into docs/
@@ -126,3 +127,23 @@ single page fallback that the plain command leaves out.
 shade the pinned version did not ship, the utilities were dropped without a
 word, and the form controls rendered white text on a white background. A class
 that has no rule in the built CSS now fails the check by name.
+
+## Deploying
+
+`vercel.json` carries what a host needs, because this project does not build
+where Angular's defaults expect. The build writes to `docs/` rather than
+`dist/margin-calculator`, so a preset that assumes the default finds nothing to
+publish.
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "docs",
+  "installCommand": "npm ci"
+}
+```
+
+`docs/` is not committed; the host builds it. There is no router here, one
+screen and no routes, so no rewrite rule is needed. The `404.html` that the
+postbuild step writes is a GitHub Pages convention and is simply unused
+elsewhere.
